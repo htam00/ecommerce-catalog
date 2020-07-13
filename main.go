@@ -14,16 +14,21 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Index: %w\n", vars["Handler"])
 }
 
-func TasksHandler(w http.ResponseWriter, r *http.Request) {
+func ProductsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "Tasks: %w\n", vars["refactory code"])
 }
 
+func ProductsIDHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
-	r.HandleFunc("/tasks", TasksHandler)
+	r.HandleFunc("/products", ProductsHandler)
+	r.HandleFunc("/products/{id}", ProductsIDHandler
 	http.Handle("/", r)
 
 	srv := &http.Server {
