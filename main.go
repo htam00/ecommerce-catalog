@@ -9,8 +9,17 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	//"go.mongodb.org/mongo-driver/bson"
+	//"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+// Type Product 
+type Product struct {
+	Name string
+	Description string
+	Price int
+}
+
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -30,42 +39,36 @@ func ProductsIDHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	// Type Product
-	type Product struct {
-	 ID	primitive.ObjectID `bson:"_id,omitempty"`
-	 Name	string	`bson:"name,omitempty"`
-	 Description	string `bson:"description,omitempty"`
-	 Price	int	`bson:"price,omitempty"`
-	}
+	// Set client options
+	clientOptions := options.Client().ApplyURI("mongodb://matheus:zurik21@ds237989.mlab.com:37989/ecommerce_catalog")
 
-	// Connect Database
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://matheus:zurik21@ds237989.mlab.com:37989/ecommerce_catalog?retryWrites=false"))
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+
+
 	if err != nil {
-		panic(err)
-	}
-	defer client.Disconnect(ctx)
-
-	// Database Name
-	database := client.Database("ecommerce_catalog")
-
-	// Instance Product
-	product := Product{
-		Name: "Frauda",
-		Description: "Fraudas descartaveis Tam: P,M,G",
-		Price: 10,
+		log.Fatal(err)
 	}
 
-	// Collection Name
-	productsCollection := database.Collection("products")
+	// check the connection
+	err = client.Ping(context.TODO(), nil)
 
-	// Insert One Product
-	insertResult, err := productsCollection.InsertOne(ctx, product)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println(insertResult.InsertedID)
 
+	fmt.Println("Connected to MongoDB")
+
+	//collection := client.Database("ecommerce_catalog").Collection("products")
+
+	err = client.Disconnect(context.TODO())
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Connection to MongoDB closed")
+
+	// Router
 	r := mux.NewRouter()
 	r.HandleFunc("/", IndexHandler)
 	r.HandleFunc("/products", ProductsHandler)
@@ -74,7 +77,7 @@ func main() {
 
 	srv := &http.Server {
 		Handler: r,
-		Addr: "127.0.0.1:4000",
+		Addr: "127.0.0.1:5000",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout: 15 * time.Second,
 	}
